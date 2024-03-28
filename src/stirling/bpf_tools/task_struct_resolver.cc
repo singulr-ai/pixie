@@ -265,7 +265,7 @@ Status ReadFromChild(int fd, TaskStructOffsets* result) {
   fds.fd = fd;
   fds.events = POLLIN;
 
-  constexpr int kTimeoutMillis = 5000;
+  constexpr int kTimeoutMillis = 60000;
   int retval = poll(&fds, 1, kTimeoutMillis);
   if (retval <= 0) {
     return error::Internal("Failed to receive data from child.");
@@ -273,7 +273,7 @@ Status ReadFromChild(int fd, TaskStructOffsets* result) {
 
   retval = read(fd, result, sizeof(*result));
   if (retval != sizeof(*result)) {
-    return error::Internal("Failed to receive data from child.");
+    return error::Internal("Failed to receive size data from child.");
   }
 
   return Status::OK();
@@ -336,7 +336,7 @@ StatusOr<TaskStructOffsets> ResolveTaskStructStartTimeOffsets() {
     LOG_IF(ERROR, !s.ok()) << s.ToString();
 
     // Close FDs.
-    close(fd[0]);
+    // fd[0] closure is handled by parent process. Not closing here to avoid race condition of reading from it in parent
     close(fd[1]);
 
     exit(0);
