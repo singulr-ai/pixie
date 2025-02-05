@@ -16,10 +16,10 @@
 
 REPOSITORY_LOCATIONS = dict(
     bazel_gazelle = dict(
-        sha256 = "29218f8e0cebe583643cbf93cae6f971be8a2484cdcfa1e45057658df8d54002",
+        sha256 = "d76bf7a60fd8b050444090dfa2837a4eaf9829e1165618ee35dceca5cbdf58d5",
         urls = [
-            "https://mirror.bazel.build/github.com/bazelbuild/bazel-gazelle/releases/download/v0.32.0/bazel-gazelle-v0.32.0.tar.gz",
-            "https://github.com/bazelbuild/bazel-gazelle/releases/download/v0.32.0/bazel-gazelle-v0.32.0.tar.gz",
+            "https://mirror.bazel.build/github.com/bazelbuild/bazel-gazelle/releases/download/v0.37.0/bazel-gazelle-v0.37.0.tar.gz",
+            "https://github.com/bazelbuild/bazel-gazelle/releases/download/v0.37.0/bazel-gazelle-v0.37.0.tar.gz",
         ],
     ),
     bazel_skylib = dict(
@@ -62,9 +62,9 @@ REPOSITORY_LOCATIONS = dict(
         urls = ["https://github.com/arun11299/cpp-jwt/archive/refs/tags/v1.1.1.tar.gz"],
     ),
     com_github_bazelbuild_buildtools = dict(
-        sha256 = "977a0bd4593c8d4c8f45e056d181c35e48aa01ad4f8090bdb84f78dca42f47dc",
-        strip_prefix = "buildtools-6.1.2",
-        urls = ["https://github.com/bazelbuild/buildtools/archive/refs/tags/v6.1.2.tar.gz"],
+        sha256 = "39c59cb5352892292cbe3174055aac187edcb5324c9b4e2d96cb6e40bd753877",
+        strip_prefix = "buildtools-7.1.2",
+        urls = ["https://github.com/bazelbuild/buildtools/archive/refs/tags/v7.1.2.tar.gz"],
     ),
     com_github_cameron314_concurrentqueue = dict(
         sha256 = "eb37336bf9ae59aca7b954db3350d9b30d1cab24b96c7676f36040aa76e915e8",
@@ -127,10 +127,10 @@ REPOSITORY_LOCATIONS = dict(
         urls = ["https://github.com/h2o/picohttpparser/archive/1d2b8a184e7ebe6651c30dcede37ba1d89691351.tar.gz"],
     ),
     com_github_iovisor_bcc = dict(
-        sha256 = "38f07777a214582a20a198b535691459d882a1e5da80057ff30f2ee27a53055c",
-        strip_prefix = "bcc-0171a363859b4a96c23543c06ef67517ddc3e789",
+        sha256 = "416426fbe22d617d8aed088062f4489e69176136e99dc0b933df58e83d9175da",
+        strip_prefix = "bcc-e57be8465b9cf238f1c04b1c7e154fd1db85326d",
         urls = [
-            "https://github.com/pixie-io/bcc/archive/0171a363859b4a96c23543c06ef67517ddc3e789.tar.gz",
+            "https://github.com/pixie-io/bcc/archive/e57be8465b9cf238f1c04b1c7e154fd1db85326d.tar.gz",
         ],
     ),
     com_github_iovisor_bpftrace = dict(
@@ -146,10 +146,10 @@ REPOSITORY_LOCATIONS = dict(
         urls = ["https://github.com/jupp0r/prometheus-cpp/archive/81e208c250748657f1d5dab247e82c4429a931af.tar.gz"],
     ),
     com_github_libbpf_libbpf = dict(
-        sha256 = "3d6afde67682c909e341bf194678a8969f17628705af25f900d5f68bd299cb03",
-        strip_prefix = "libbpf-1.0.1",
+        sha256 = "859a31e9101237338d46eb62a62cb8fcb342c9ce0f9b9137e5a3a728c088c338",
+        strip_prefix = "libbpf-42065ea6627ff6e1ab4c65e51042a70fbf30ff7c",
         urls = [
-            "https://github.com/libbpf/libbpf/archive/refs/tags/v1.0.1.tar.gz",
+            "https://github.com/libbpf/libbpf/archive/42065ea6627ff6e1ab4c65e51042a70fbf30ff7c.tar.gz",
         ],
     ),
     com_github_libuv_libuv = dict(
@@ -177,9 +177,9 @@ REPOSITORY_LOCATIONS = dict(
         urls = ["https://github.com/nlohmann/json/releases/download/v3.7.3/include.zip"],
     ),
     com_github_opentelemetry_proto = dict(
-        urls = ["https://github.com/open-telemetry/opentelemetry-proto/archive/refs/tags/v0.10.0.tar.gz"],
-        strip_prefix = "opentelemetry-proto-0.10.0",
-        sha256 = "f1004a49f40d7acb43e86b1fd95f73e80c778acb163e309bba86f0cbd7fa8a71",
+        urls = ["https://github.com/open-telemetry/opentelemetry-proto/archive/refs/tags/v1.3.2.tar.gz"],
+        strip_prefix = "opentelemetry-proto-1.3.2",
+        sha256 = "c069c0d96137cf005d34411fa67dd3b6f1f8c64af1e7fb2fe0089a41c425acd7",
     ),
     com_github_packetzero_dnsparser = dict(
         sha256 = "bdf6c7f56f33725c1c32e672a4779576fb639dd2df565115778eb6be48296431",
@@ -457,9 +457,9 @@ REPOSITORY_LOCATIONS = dict(
         urls = ["https://github.com/bazelbuild/rules_foreign_cc/archive/refs/tags/0.8.0.tar.gz"],
     ),
     rules_python = dict(
-        sha256 = "cdf6b84084aad8f10bf20b46b77cb48d83c319ebe6458a18e9d2cebf57807cdd",
-        strip_prefix = "rules_python-0.8.1",
-        urls = ["https://github.com/bazelbuild/rules_python/archive/refs/tags/0.8.1.tar.gz"],
+        sha256 = "9d04041ac92a0985e344235f5d946f71ac543f1b1565f2cdbc9a2aaee8adf55b",
+        strip_prefix = "rules_python-0.26.0",
+        urls = ["https://github.com/bazelbuild/rules_python/archive/refs/tags/0.26.0.tar.gz"],
     ),
     rules_jvm_external = dict(
         urls = ["https://github.com/bazelbuild/rules_jvm_external/archive/refs/tags/5.2.tar.gz"],

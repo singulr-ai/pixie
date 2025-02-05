@@ -55,15 +55,14 @@ std::string_view kGoBuildInfoMagic =
 
 // Reads a Go string encoded within a buildinfo header. This function is meant to provide the same
 // functionality as
-// https://github.com/golang/go/blob/master/src/debug/buildinfo/buildinfo.go#L244C37-L244C44
+// https://github.com/golang/go/blob/aa97a012b4be393c1725c16a78b92dea81632378/src/debug/buildinfo/buildinfo.go#L282
 StatusOr<std::string> ReadGoString(ElfReader* elf_reader, uint64_t ptr_size, uint64_t ptr_addr,
                                    read_ptr_func_t read_ptr) {
   PX_ASSIGN_OR_RETURN(u8string_view data_addr, elf_reader->BinaryByteCode(ptr_addr, ptr_size));
   PX_ASSIGN_OR_RETURN(u8string_view data_len,
                       elf_reader->BinaryByteCode(ptr_addr + ptr_size, ptr_size));
 
-  PX_ASSIGN_OR_RETURN(uint64_t vaddr_offset, elf_reader->GetVirtualAddrAtOffsetZero());
-  ptr_addr = read_ptr(data_addr) - vaddr_offset;
+  PX_ASSIGN_OR_RETURN(ptr_addr, elf_reader->VirtualAddrToBinaryAddr(read_ptr(data_addr)));
   uint64_t str_length = read_ptr(data_len);
 
   PX_ASSIGN_OR_RETURN(std::string_view go_version_bytecode,
@@ -136,24 +135,37 @@ StatusOr<std::string> ReadGoBuildVersion(ElfReader* elf_reader) {
     }
   }
 
-  PX_ASSIGN_OR_RETURN(uint64_t vaddr_offset, elf_reader->GetVirtualAddrAtOffsetZero());
-
-  PX_ASSIGN_OR_RETURN(auto s, binary_decoder.ExtractString<u8string_view::value_type>(ptr_size));
-  uint64_t ptr_addr = read_ptr(s) - vaddr_offset;
+  // Reads the virtual address location of the runtime.buildVersion symbol.
+  PX_ASSIGN_OR_RETURN(auto runtime_version_vaddr,
+                      binary_decoder.ExtractString<u8string_view::value_type>(ptr_size));
+  PX_ASSIGN_OR_RETURN(uint64_t ptr_addr,
+                      elf_reader->VirtualAddrToBinaryAddr(read_ptr(runtime_version_vaddr)));
 
   return ReadGoString(elf_reader, ptr_size, ptr_addr, read_ptr);
 }
+
+// Prefixes used to search for itable symbols in the binary. Follows the format:
+// <prefix>.<type_name>,<interface_name>. i.e. go.itab.<type_name>,<interface_name>
+constexpr std::array<std::string_view, 2> kITablePrefixes = {
+    "go:itab.",  // Prefix used by Go 1.20 binaries and later.
+    "go.itab.",  // Prefix used by Go 1.19 binaries and earlier.
+};
 
 StatusOr<absl::flat_hash_map<std::string, std::vector<IntfImplTypeInfo>>> ExtractGolangInterfaces(
     ElfReader* elf_reader) {
   absl::flat_hash_map<std::string, std::vector<IntfImplTypeInfo>> interface_types;
 
-  // All itable objects in the symbols are prefixed with this string.
-  const std::string_view kITablePrefix("go.itab.");
-
-  PX_ASSIGN_OR_RETURN(std::vector<ElfReader::SymbolInfo> itable_symbols,
-                      elf_reader->SearchSymbols(kITablePrefix, SymbolMatchType::kPrefix,
-                                                /*symbol_type*/ ELFIO::STT_OBJECT));
+  std::vector<ElfReader::SymbolInfo> itable_symbols;
+  std::string_view iTablePrefix;
+  for (const auto& prefix : kITablePrefixes) {
+    PX_ASSIGN_OR_RETURN(itable_symbols,
+                        elf_reader->SearchSymbols(prefix, SymbolMatchType::kPrefix,
+                                                  /*symbol_type*/ ELFIO::STT_OBJECT));
+    if (!itable_symbols.empty()) {
+      iTablePrefix = prefix;
+      break;
+    }
+  }
 
   for (const auto& sym : itable_symbols) {
     // Expected format is:
@@ -166,7 +178,7 @@ StatusOr<absl::flat_hash_map<std::string, std::vector<IntfImplTypeInfo>>> Extrac
 
     std::string_view interface_name = sym_split[1];
     std::string_view type = sym_split[0];
-    type.remove_prefix(kITablePrefix.size());
+    type.remove_prefix(iTablePrefix.size());
 
     IntfImplTypeInfo info;
 

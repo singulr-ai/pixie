@@ -40,6 +40,14 @@ clang_gs_path :=  gs://pixie-dev-public/clang/$(CLANG_TAG)
 clang_deb_image_tag := "gcr.io/pixie-oss/pixie-dev-public/clang_deb_builder_image:$(CLANG_VERSION)"
 CLANG_BUILD_DIR := "$(BUILD_DIR)/clang-$(CLANG_TAG)"
 
+## libtinfo5 parameters
+# This is the latest libtinfo5 deb from bionic upstream. Since Ubuntu 24.04 and later
+# use newer versions, this is needed to make the pixie built clang binary happy by providing
+# its dynamically linked dependencies (libtinfo5).
+LIBTINFO5_DEB_IMAGE_VERSION := 6.3-2ubuntu0.1
+LIBTINFO5_DEB_DOWNLOAD := http://us.archive.ubuntu.com/ubuntu/pool/universe/n/ncurses/libtinfo5_$(LIBTINFO5_DEB_IMAGE_VERSION)_amd64.deb
+libtinfo5_deb_fname := libtinfo5-$(LIBTINFO5_DEB_IMAGE_VERSION).deb
+
 ## gperftools parameters
 GPERFTOOLS_DEB_IMAGE_VERSION := 2.10-pl1
 gperftools_deb_fname := gperftools-pixie-$(GPERFTOOLS_DEB_IMAGE_VERSION).deb
@@ -120,15 +128,15 @@ KERNEL_BUILD_DIR := $(BUILD_DIR)/kernel_build
 # 4.19.276, 4.14.304 are the correct versions here, but there is a bug with patch > 255.
 KERNEL_BUILD_VERSIONS := 4.14.254 \
 	4.19.254 \
-	5.4.235 \
-	5.10.173 \
-	5.15.101 \
-	6.1.18
+	5.4.254 \
+	5.10.224 \
+	5.15.165 \
+	6.1.106 \
+	6.8.12
 
 KERNEL_BUILD_TEMPLATE := linux-build-%.tar.gz
 KERNEL_BUILD_TARGETS = $(addprefix $(KERNEL_BUILD_DIR)/, $(patsubst %,$(KERNEL_BUILD_TEMPLATE), $(KERNEL_BUILD_VERSIONS)))
 KERNEL_BUILD_TS := $(shell date +%Y%m%d%H%M%S)
-KERNEL_BUILD_GS_PATH := gs://pixie-dev-public/kernel-build/$(KERNEL_BUILD_TS)
 
 ETCD_IMAGE_VERSION := 3.5.9
 ETCD_IMAGE_TAG := "gcr.io/pixie-oss/pixie-dev-public/etcd:$(ETCD_IMAGE_VERSION)"
@@ -151,6 +159,14 @@ upload_clang_deb: build_clang_deb_image ## Target to build and upload clang deb 
 
 	cat $(CLANG_BUILD_DIR)/sha256sums
 
+##############################################
+# libtinfo5 upload
+##############################################
+.PHONY: upload_libtinfo5_deb
+upload_libtinfo5_deb:
+	mkdir -p $(BUILD_DIR)
+	wget $(LIBTINFO5_DEB_DOWNLOAD) -O $(PWD)/$(BUILD_DIR)/$(libtinfo5_deb_fname)
+	$(GH_RELEASE_UPLOAD) libtinfo5 $(LIBTINFO5_DEB_IMAGE_VERSION) $(PWD)/$(BUILD_DIR)/$(libtinfo5_deb_fname)
 
 ##############################################
 # GPerftools build
@@ -270,7 +286,6 @@ $(KERNEL_BUILD_DIR)/linux-build-%.tar.gz: kernel_builder/Dockerfile kernel_build
 
 .PHONY: upload_kernel_build
 upload_kernel_build:  $(KERNEL_BUILD_TARGETS)
-	gsutil cp $^ $(KERNEL_BUILD_GS_PATH)
 	$(GH_RELEASE_UPLOAD) kernel-build $(KERNEL_BUILD_TS) $^
 	@echo "Add this to the qemu bzl file:"
 	@echo "============================="

@@ -176,7 +176,7 @@ DEFINE_bool(
     stirling_debug_tls_sources, gflags::BoolFromEnv("PX_DEBUG_TLS_SOURCES", false),
     "If true, stirling will add additional prometheus metrics regarding the traced tls sources");
 
-DEFINE_uint32(stirling_bpf_loop_limit, 42,
+DEFINE_uint32(stirling_bpf_loop_limit, 41,
               "The maximum number of iovecs to capture for syscalls. "
               "Set conservatively for older kernels by default to keep the instruction count below "
               "BPF's limit for version 4 kernels (4096 per probe).");
@@ -303,49 +303,66 @@ void SocketTraceConnector::InitProtocolTransferSpecs() {
 }
 
 using ProbeType = bpf_tools::BPFProbeAttachType;
-const auto kProbeSpecs = MakeArray<bpf_tools::KProbeSpec>(
-    {{"connect", ProbeType::kEntry, "syscall__probe_entry_connect"},
-     {"connect", ProbeType::kReturn, "syscall__probe_ret_connect"},
-     {"accept", ProbeType::kEntry, "syscall__probe_entry_accept"},
-     {"accept", ProbeType::kReturn, "syscall__probe_ret_accept"},
-     {"accept4", ProbeType::kEntry, "syscall__probe_entry_accept4"},
-     {"accept4", ProbeType::kReturn, "syscall__probe_ret_accept4"},
-     {"write", ProbeType::kEntry, "syscall__probe_entry_write"},
-     {"write", ProbeType::kReturn, "syscall__probe_ret_write"},
-     {"writev", ProbeType::kEntry, "syscall__probe_entry_writev"},
-     {"writev", ProbeType::kReturn, "syscall__probe_ret_writev"},
-     {"send", ProbeType::kEntry, "syscall__probe_entry_send"},
-     {"send", ProbeType::kReturn, "syscall__probe_ret_send"},
-     {"sendto", ProbeType::kEntry, "syscall__probe_entry_sendto"},
-     {"sendto", ProbeType::kReturn, "syscall__probe_ret_sendto"},
-     {"sendmsg", ProbeType::kEntry, "syscall__probe_entry_sendmsg"},
-     {"sendmsg", ProbeType::kReturn, "syscall__probe_ret_sendmsg"},
-     {"sendmmsg", ProbeType::kEntry, "syscall__probe_entry_sendmmsg"},
-     {"sendmmsg", ProbeType::kReturn, "syscall__probe_ret_sendmmsg"},
-     {"sendfile", ProbeType::kEntry, "syscall__probe_entry_sendfile"},
-     {"sendfile", ProbeType::kReturn, "syscall__probe_ret_sendfile"},
-     {"sendfile64", ProbeType::kEntry, "syscall__probe_entry_sendfile"},
-     {"sendfile64", ProbeType::kReturn, "syscall__probe_ret_sendfile"},
-     {"read", ProbeType::kEntry, "syscall__probe_entry_read"},
-     {"read", ProbeType::kReturn, "syscall__probe_ret_read"},
-     {"readv", ProbeType::kEntry, "syscall__probe_entry_readv"},
-     {"readv", ProbeType::kReturn, "syscall__probe_ret_readv"},
-     {"recv", ProbeType::kEntry, "syscall__probe_entry_recv"},
-     {"recv", ProbeType::kReturn, "syscall__probe_ret_recv"},
-     {"recvfrom", ProbeType::kEntry, "syscall__probe_entry_recvfrom"},
-     {"recvfrom", ProbeType::kReturn, "syscall__probe_ret_recvfrom"},
-     {"recvmsg", ProbeType::kEntry, "syscall__probe_entry_recvmsg"},
-     {"recvmsg", ProbeType::kReturn, "syscall__probe_ret_recvmsg"},
-     {"recvmmsg", ProbeType::kEntry, "syscall__probe_entry_recvmmsg"},
-     {"recvmmsg", ProbeType::kReturn, "syscall__probe_ret_recvmmsg"},
-     {"close", ProbeType::kEntry, "syscall__probe_entry_close"},
-     {"close", ProbeType::kReturn, "syscall__probe_ret_close"},
-     {"mmap", ProbeType::kEntry, "syscall__probe_entry_mmap"},
-     {"sock_alloc", ProbeType::kReturn, "probe_ret_sock_alloc", /*is_syscall*/ false},
-     {"security_socket_sendmsg", ProbeType::kEntry, "probe_entry_security_socket_sendmsg",
-      /*is_syscall*/ false},
-     {"security_socket_recvmsg", ProbeType::kEntry, "probe_entry_security_socket_recvmsg",
-      /*is_syscall*/ false}});
+const auto kProbeSpecs = MakeArray<bpf_tools::KProbeSpec>({
+    {"connect", ProbeType::kEntry, "syscall__probe_entry_connect"},
+    {"connect", ProbeType::kReturn, "syscall__probe_ret_connect"},
+    {"accept", ProbeType::kEntry, "syscall__probe_entry_accept"},
+    {"accept", ProbeType::kReturn, "syscall__probe_ret_accept"},
+    {"accept4", ProbeType::kEntry, "syscall__probe_entry_accept4"},
+    {"accept4", ProbeType::kReturn, "syscall__probe_ret_accept4"},
+    {"write", ProbeType::kEntry, "syscall__probe_entry_write"},
+    {"write", ProbeType::kReturn, "syscall__probe_ret_write"},
+    {"writev", ProbeType::kEntry, "syscall__probe_entry_writev"},
+    {"writev", ProbeType::kReturn, "syscall__probe_ret_writev"},
+    {"send", ProbeType::kEntry, "syscall__probe_entry_send"},
+    {"send", ProbeType::kReturn, "syscall__probe_ret_send"},
+    {"sendto", ProbeType::kEntry, "syscall__probe_entry_sendto"},
+    {"sendto", ProbeType::kReturn, "syscall__probe_ret_sendto"},
+    {"sendmsg", ProbeType::kEntry, "syscall__probe_entry_sendmsg"},
+    {"sendmsg", ProbeType::kReturn, "syscall__probe_ret_sendmsg"},
+    {"sendmmsg", ProbeType::kEntry, "syscall__probe_entry_sendmmsg"},
+    {"sendmmsg", ProbeType::kReturn, "syscall__probe_ret_sendmmsg"},
+    {"sendfile", ProbeType::kEntry, "syscall__probe_entry_sendfile"},
+    {"sendfile", ProbeType::kReturn, "syscall__probe_ret_sendfile"},
+    {"sendfile64", ProbeType::kEntry, "syscall__probe_entry_sendfile"},
+    {"sendfile64", ProbeType::kReturn, "syscall__probe_ret_sendfile"},
+    {"read", ProbeType::kEntry, "syscall__probe_entry_read"},
+    {"read", ProbeType::kReturn, "syscall__probe_ret_read"},
+    {"readv", ProbeType::kEntry, "syscall__probe_entry_readv"},
+    {"readv", ProbeType::kReturn, "syscall__probe_ret_readv"},
+    {"recv", ProbeType::kEntry, "syscall__probe_entry_recv"},
+    {"recv", ProbeType::kReturn, "syscall__probe_ret_recv"},
+    {"recvfrom", ProbeType::kEntry, "syscall__probe_entry_recvfrom"},
+    {"recvfrom", ProbeType::kReturn, "syscall__probe_ret_recvfrom"},
+    {"recvmsg", ProbeType::kEntry, "syscall__probe_entry_recvmsg"},
+    {"recvmsg", ProbeType::kReturn, "syscall__probe_ret_recvmsg"},
+    {"recvmmsg", ProbeType::kEntry, "syscall__probe_entry_recvmmsg"},
+    {"recvmmsg", ProbeType::kReturn, "syscall__probe_ret_recvmmsg"},
+    {"close", ProbeType::kEntry, "syscall__probe_entry_close"},
+    {"close", ProbeType::kReturn, "syscall__probe_ret_close"},
+    {"mmap", ProbeType::kEntry, "syscall__probe_entry_mmap"},
+    {"sock_alloc", ProbeType::kReturn, "probe_ret_sock_alloc", /*is_syscall*/ false},
+    {"tcp_v4_connect", ProbeType::kEntry, "probe_entry_populate_active_connect_sock",
+     /*is_syscall*/ false},
+    {"tcp_v4_connect", ProbeType::kReturn, "probe_ret_populate_active_connect_sock",
+     /*is_syscall*/ false},
+    {"tcp_v6_connect", ProbeType::kEntry, "probe_entry_populate_active_connect_sock",
+     /*is_syscall*/ false},
+    {"tcp_v6_connect", ProbeType::kReturn, "probe_ret_populate_active_connect_sock",
+     /*is_syscall*/ false},
+    {"tcp_sendmsg", ProbeType::kEntry, "probe_entry_populate_active_connect_sock",
+     /*is_syscall*/ false},
+    {"tcp_sendmsg", ProbeType::kReturn, "probe_ret_populate_active_connect_sock",
+     /*is_syscall*/ false},
+    {"security_socket_sendmsg", ProbeType::kEntry, "probe_entry_socket_sendmsg",
+     /*is_syscall*/ false, /* is_optional */ false,
+     std::make_shared<bpf_tools::KProbeSpec>(bpf_tools::KProbeSpec{
+         "sock_sendmesg", ProbeType::kEntry, "probe_entry_socket_sendmsg", false, true})},
+    {"security_socket_recvmsg", ProbeType::kEntry, "probe_entry_socket_recvmsg",
+     /*is_syscall*/ false, /* is_optional */ false,
+     std::make_shared<bpf_tools::KProbeSpec>(bpf_tools::KProbeSpec{
+         "sock_recvmsg", ProbeType::kEntry, "probe_entry_socket_recvmsg", false, true})},
+});
 
 using bpf_tools::PerfBufferSizeCategory;
 
@@ -443,7 +460,14 @@ auto SocketTraceConnector::InitPerfBufferSpecs() {
 Status SocketTraceConnector::InitBPF() {
   // set BPF loop limit and chunk limit based on kernel version
   auto kernel = system::GetCachedKernelVersion();
-  if (kernel.version >= 5 || (kernel.version == 5 && kernel.major_rev >= 1)) {
+  auto loop_limit_is_default =
+      gflags::GetCommandLineFlagInfoOrDie("stirling_bpf_loop_limit").is_default;
+  auto chunk_limit_is_default =
+      gflags::GetCommandLineFlagInfoOrDie("stirling_bpf_chunk_limit").is_default;
+
+  // Do not automatically raise loop and chunk limits for non-default values.
+  if (loop_limit_is_default && chunk_limit_is_default &&
+      (kernel.version > 5 || (kernel.version == 5 && kernel.major_rev >= 1))) {
     // Kernels >= 5.1 have higher BPF instruction limits (1 million for verifier).
     // This enables a 21x increase to our loop and chunk limits
     FLAGS_stirling_bpf_loop_limit = 882;
@@ -688,6 +712,12 @@ void SocketTraceConnector::UpdateTrackerTraceLevel(ConnTracker* tracker) {
   }
   if (pids_to_trace_disable_.contains(tracker->conn_id().upid.pid)) {
     tracker->SetDebugTrace(0);
+  }
+  // Debugging Server side tracing is difficult when the server side services requests pre fork
+  // (certain web servers, postgres, etc). This provides a means for enabling CONN_TRACE for
+  // all processes since these situations are impossible to debug via --stirling_conn_trace_pid.
+  if (debug_level_ >= 2) {
+    tracker->SetDebugTrace(2);
   }
 }
 
@@ -1254,7 +1284,8 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
 
   // Currently decompresses gzip content, but could handle other transformations too.
   // Note that we do this after filtering to avoid burning CPU cycles unnecessarily.
-  protocols::http::PreProcessMessage(&resp_message);
+  protocols::http::PreProcessRespMessage(&resp_message);
+  protocols::http::PreProcessReqMessage(&req_message);
 
   md::UPID upid(ctx->GetASID(), conn_tracker.conn_id().upid.pid,
                 conn_tracker.conn_id().upid.start_time_ticks);
@@ -1274,6 +1305,7 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   r.Append<r.ColIndex("local_addr")>(conn_tracker.local_endpoint().AddrStr());
   r.Append<r.ColIndex("local_port")>(conn_tracker.local_endpoint().port());
   r.Append<r.ColIndex("trace_role")>(conn_tracker.role());
+  r.Append<r.ColIndex("encrypted")>(conn_tracker.ssl());
   r.Append<r.ColIndex("major_version")>(1);
   r.Append<r.ColIndex("minor_version")>(resp_message.minor_version);
   r.Append<r.ColIndex("content_type")>(static_cast<uint64_t>(content_type));
@@ -1338,6 +1370,7 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   r.Append<r.ColIndex("local_addr")>(conn_tracker.local_endpoint().AddrStr());
   r.Append<r.ColIndex("local_port")>(conn_tracker.local_endpoint().port());
   r.Append<r.ColIndex("trace_role")>(conn_tracker.role());
+  r.Append<r.ColIndex("encrypted")>(conn_tracker.ssl());
   r.Append<r.ColIndex("major_version")>(2);
   // HTTP2 does not define minor version.
   r.Append<r.ColIndex("minor_version")>(0);
@@ -1381,6 +1414,7 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   r.Append<r.ColIndex("local_addr")>(conn_tracker.local_endpoint().AddrStr());
   r.Append<r.ColIndex("local_port")>(conn_tracker.local_endpoint().port());
   r.Append<r.ColIndex("trace_role")>(conn_tracker.role());
+  r.Append<r.ColIndex("encrypted")>(conn_tracker.ssl());
   r.Append<r.ColIndex("req_cmd")>(static_cast<uint64_t>(entry.req.cmd));
   r.Append<r.ColIndex("req_body")>(std::move(entry.req.msg), FLAGS_max_body_bytes);
   r.Append<r.ColIndex("resp_status")>(static_cast<uint64_t>(entry.resp.status));
@@ -1406,6 +1440,7 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   r.Append<r.ColIndex("local_addr")>(conn_tracker.local_endpoint().AddrStr());
   r.Append<r.ColIndex("local_port")>(conn_tracker.local_endpoint().port());
   r.Append<r.ColIndex("trace_role")>(conn_tracker.role());
+  r.Append<r.ColIndex("encrypted")>(conn_tracker.ssl());
   r.Append<r.ColIndex("req_op")>(static_cast<uint64_t>(entry.req.op));
   r.Append<r.ColIndex("req_body")>(std::move(entry.req.msg), FLAGS_max_body_bytes);
   r.Append<r.ColIndex("resp_op")>(static_cast<uint64_t>(entry.resp.op));
@@ -1431,6 +1466,7 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   r.Append<r.ColIndex("local_addr")>(conn_tracker.local_endpoint().AddrStr());
   r.Append<r.ColIndex("local_port")>(conn_tracker.local_endpoint().port());
   r.Append<r.ColIndex("trace_role")>(conn_tracker.role());
+  r.Append<r.ColIndex("encrypted")>(conn_tracker.ssl());
   r.Append<r.ColIndex("req_header")>(entry.req.header);
   r.Append<r.ColIndex("req_body")>(entry.req.query);
   r.Append<r.ColIndex("resp_header")>(entry.resp.header);
@@ -1456,6 +1492,7 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   r.Append<r.ColIndex("local_addr")>(conn_tracker.local_endpoint().AddrStr());
   r.Append<r.ColIndex("local_port")>(conn_tracker.local_endpoint().port());
   r.Append<r.ColIndex("trace_role")>(conn_tracker.role());
+  r.Append<r.ColIndex("encrypted")>(conn_tracker.ssl());
   r.Append<r.ColIndex("req")>(std::move(entry.req.payload));
   r.Append<r.ColIndex("resp")>(std::move(entry.resp.payload));
   r.Append<r.ColIndex("latency")>(
@@ -1480,6 +1517,7 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   r.Append<r.ColIndex("local_addr")>(conn_tracker.local_endpoint().AddrStr());
   r.Append<r.ColIndex("local_port")>(conn_tracker.local_endpoint().port());
   r.Append<r.ColIndex("trace_role")>(conn_tracker.role());
+  r.Append<r.ColIndex("encrypted")>(conn_tracker.ssl());
   r.Append<r.ColIndex("req_type")>(entry.req.type);
   r.Append<r.ColIndex("latency")>(
       CalculateLatency(entry.req.timestamp_ns, entry.resp.timestamp_ns));
@@ -1503,6 +1541,7 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   r.Append<r.ColIndex("local_addr")>(conn_tracker.local_endpoint().AddrStr());
   r.Append<r.ColIndex("local_port")>(conn_tracker.local_endpoint().port());
   r.Append<r.ColIndex("trace_role")>(conn_tracker.role());
+  r.Append<r.ColIndex("encrypted")>(conn_tracker.ssl());
 
   size_t frame_type = std::max(entry.req.frame_type, entry.resp.frame_type);
   r.Append<r.ColIndex("frame_type")>(frame_type);
@@ -1556,6 +1595,7 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   r.Append<r.ColIndex("local_addr")>(conn_tracker.local_endpoint().AddrStr());
   r.Append<r.ColIndex("local_port")>(conn_tracker.local_endpoint().port());
   r.Append<r.ColIndex("trace_role")>(role);
+  r.Append<r.ColIndex("encrypted")>(conn_tracker.ssl());
   r.Append<r.ColIndex("req_cmd")>(std::string(entry.req.command));
   r.Append<r.ColIndex("req_args")>(std::string(entry.req.payload));
   r.Append<r.ColIndex("resp")>(std::string(entry.resp.payload));
@@ -1581,6 +1621,7 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   r.Append<r.ColIndex("local_addr")>(conn_tracker.local_endpoint().AddrStr());
   r.Append<r.ColIndex("local_port")>(conn_tracker.local_endpoint().port());
   r.Append<r.ColIndex("trace_role")>(role);
+  r.Append<r.ColIndex("encrypted")>(conn_tracker.ssl());
   r.Append<r.ColIndex("cmd")>(record.req.command);
   r.Append<r.ColIndex("body")>(record.req.options);
   r.Append<r.ColIndex("resp")>(record.resp.command);
@@ -1606,6 +1647,7 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   r.Append<r.ColIndex("local_addr")>(conn_tracker.local_endpoint().AddrStr());
   r.Append<r.ColIndex("local_port")>(conn_tracker.local_endpoint().port());
   r.Append<r.ColIndex("trace_role")>(role);
+  r.Append<r.ColIndex("encrypted")>(conn_tracker.ssl());
   r.Append<r.ColIndex("req_cmd")>(static_cast<int64_t>(record.req.api_key));
   r.Append<r.ColIndex("client_id")>(std::move(record.req.client_id), FLAGS_max_body_bytes);
   r.Append<r.ColIndex("req_body")>(std::move(record.req.msg), kMaxKafkaBodyBytes);
@@ -1632,6 +1674,7 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   r.Append<r.ColIndex("local_addr")>(conn_tracker.local_endpoint().AddrStr());
   r.Append<r.ColIndex("local_port")>(conn_tracker.local_endpoint().port());
   r.Append<r.ColIndex("trace_role")>(role);
+  r.Append<r.ColIndex("encrypted")>(conn_tracker.ssl());
   r.Append<r.ColIndex("req_cmd")>(std::move(record.req.op_msg_type));
   r.Append<r.ColIndex("req_body")>(std::move(record.req.frame_body));
   r.Append<r.ColIndex("resp_status")>(std::move(record.resp.op_msg_type));
